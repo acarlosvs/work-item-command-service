@@ -2,6 +2,8 @@ package br.com.tasknow.workitemcommandservice.handler;
 
 import br.com.tasknow.workitemcommandservice.commands.CreateWorkItemCommand;
 import br.com.tasknow.workitemcommandservice.domain.WorkItem;
+import br.com.tasknow.workitemcommandservice.dtos.NotificationDTO;
+import br.com.tasknow.workitemcommandservice.repository.NotificationRepository;
 import br.com.tasknow.workitemcommandservice.repository.WorkItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -15,6 +17,7 @@ public class CreateWorkItemCommandHandler implements CommandHandler<CreateWorkIt
 
     private final RabbitTemplate rabbitTemplate;
     private final WorkItemRepository workItemRepository;
+    private final NotificationRepository notificationRepository;
 
     @Override
     public void handle(CreateWorkItemCommand command) {
@@ -29,5 +32,11 @@ public class CreateWorkItemCommandHandler implements CommandHandler<CreateWorkIt
 
         //Como estou mandando pra essa routing key, deve cair na fila de criar e de atualizar
         rabbitTemplate.convertAndSend("tasknow.create.v1.r", workItem);
+
+        notificationRepository.sendNotification(NotificationDTO
+                .builder()
+                .tipo(1)
+                .userId("")
+                .build());
     }
 }
